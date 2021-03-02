@@ -486,6 +486,35 @@ FROM Services s
          JOIN Campings c ON b.idCamping = c.idCamping
 WHERE nomCamping = 'La Décharge Monochrome' );
 
+--R50
+SELECT nomEmploye
+FROM Employes e
+WHERE idCamping IS NULL;
+
+--R51
+SELECT nomEmploye, prenomEmploye
+FROM Employes
+WHERE idEmploye IN (
+    SELECT idEmployeChef
+    FROM Employes
+    WHERE idEmploye IN (
+        SELECT idEmployeChef
+        FROM Employes
+    )
+)
+
+--R52
+SELECT DISTINCT nomService
+FROM Services s
+WHERE NOT EXISTS(
+        SELECT *
+        FROM Proposer p
+                 JOIN Bungalows b ON p.idBungalow = b.idBungalow
+        WHERE superficieBungalow > 60
+          AND s.idService = p.idService
+    );
+
+
 
 
 
