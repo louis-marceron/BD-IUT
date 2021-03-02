@@ -514,9 +514,54 @@ WHERE NOT EXISTS(
           AND s.idService = p.idService
     );
 
+--R53
+SELECT nomCamping
+FROM Campings
+WHERE nbEtoilesCamping IN (
+    SELECT MAX(nbEtoilesCamping)
+    FROM Campings
+    WHERE villeCamping = 'Palavas'
+)
+  AND villeCamping = 'Palavas';
 
+--R54
+SELECT nomBungalow
+FROM Bungalows
+WHERE idBungalow IN (
+    SELECT idBungalow
+    FROM Proposer p
+             JOIN Services s ON p.idService = s.idService
+    WHERE nomService = 'Chaine Hi-Fi'
+    INTERSECT
+    SELECT idBungalow
+    FROM Proposer p
+             JOIN Services s ON p.idService = s.idService
+    WHERE nomService = 'Climatisation'
+);
 
+--R55
+SELECT nomService
+FROM Services s
+WHERE NOT EXISTS(
+        SELECT *
+        FROM Proposer p
+                 JOIN Bungalows b ON p.idBungalow = b.idBungalow
+                 JOIN Campings c ON b.idCamping = c.idCamping
+        WHERE nomCamping = 'The White Majestic'
+          AND s.idService = p.idService
+    )
+   OR categorieService = 'Loisir';
 
+--R56
+SELECT nomClient
+FROM Clients
+WHERE idClient IN (
+    SELECT idClient
+    FROM Locations l
+             JOIN Bungalows b ON l.idBungalow = b.idBungalow
+             JOIN Campings c ON b.idCamping = c.idCamping
+    WHERE nomCamping = 'La Décharge Monochrome'
+);
 
 
 
