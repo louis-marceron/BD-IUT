@@ -330,12 +330,16 @@ WHERE NOT EXISTS(
 
 --R45
 SELECT idLocation
-FROM Locations
+FROM Locations l
+         JOIN Bungalows b ON l.idBungalow = b.idBungalow
+         JOIN Campings c ON b.idCamping = c.idCamping
 WHERE (dateFin - dateDebut) IN (
     SELECT MAX(dateFin - dateDebut)
     FROM Locations l
-             JOIN Bungalows b ON l.idLocation = b.idBungalow
-    WHERE nomBungalow = 'The White Majestic');
+             JOIN Bungalows b ON l.idBungalow = b.idBungalow
+             JOIN Campings c ON b.idCamping = c.idCamping
+    WHERE nomCamping = 'The White Majestic')
+  AND nomCamping = 'The White Majestic';
 
 --R46
 SELECT DISTINCT VilleClient
@@ -377,12 +381,12 @@ WHERE NOT EXISTS(
 SELECT nomClient, prenomClient
 FROM Clients
 WHERE idClient IN (
-
     SELECT idClient
     FROM Locations l
              JOIN Bungalows b ON l.idBungalow = b.idBungalow
              JOIN Campings c ON b.idCamping = c.idCamping
-    WHERE nomCamping = 'La Décharge Monochrome' OR nomCamping = 'Les Flots Bleus'
+    WHERE nomCamping = 'La Décharge Monochrome'
+       OR nomCamping = 'Les Flots Bleus'
     MINUS
     (
     SELECT idClient
@@ -397,6 +401,76 @@ WHERE idClient IN (
     JOIN Campings c ON b.idCamping = c.idCamping
     WHERE nomCamping = 'Les Flots Bleus'
     )
+    );
+
+--R35
+SELECT nomClient, prenomClient
+FROM Clients
+WHERE idClient NOT IN (
+    SELECT idClient
+    FROM Locations
+);
+--ou
+SELECT nomClient, prenomClient
+FROM Clients
+WHERE idClient IN (
+    SELECT idClient
+    FROM Clients MINUS
+SELECT idClient
+FROM Locations );
+--or
+SELECT nomClient, prenomClient
+FROM Clients c
+WHERE NOT EXISTS(
+        SELECT *
+        FROM Locations l
+        WHERE c.idClient = l.idClient
+    );
+
+--R36
+SELECT nomCamping
+FROM Campings c
+WHERE NOT EXISTS(
+        SELECT *
+        FROM Bungalows b
+        WHERE c.idCamping = b.idCamping
+          AND superficieBungalow > 50
+    );
+
+--R37
+SELECT COUNT(*) AS "Nb clients"
+FROM Clients c
+WHERE NOT EXISTS(
+        SELECT *
+        FROM Locations l
+        WHERE montantLocation >= 990
+          AND c.idClient = l.idClient
+    )
+  AND idClient IN (
+    SELECT idClient
+    FROM Locations
+);
+
+--38
+SELECT nomClient
+FROM Clients c
+WHERE prenomClient LIKE 'J%'
+  AND NOT EXISTS(
+        SELECT *
+        FROM Campings camp
+        WHERE c.villeClient = camp.villeCamping
+    );
+
+--R39
+SELECT categorieService
+FROM Services s
+WHERE NOT EXISTS(
+        SELECT *
+        FROM Proposer p
+                 JOIN Bungalows b ON p.idBungalow = b.idBungalow
+                 JOIN Campings c ON b.idCamping = c.idCamping
+        WHERE nomCamping = 'La Décharge Monochrome'
+          AND s.idService = p.idService
     );
 
 
