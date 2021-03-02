@@ -563,6 +563,63 @@ WHERE idClient IN (
     WHERE nomCamping = 'La Décharge Monochrome'
 );
 
+--R57
+SELECT nomBungalow
+FROM Bungalows b1
+WHERE superficieBungalow IN (
+    SELECT MIN(superficieBungalow)
+    FROM Bungalows b
+    WHERE NOT EXISTS(
+            SELECT *
+            FROM Locations l
+            WHERE b.idBungalow = l.idBungalow
+        )
+      AND NOT EXISTS(
+            SELECT *
+            FROM Locations l
+            WHERE b1.idBungalow = l.idBungalow
+        )
+);
+
+--R58
+SELECT nomCamping
+FROM Campings c
+WHERE NOT EXISTS(
+        SELECT *
+        FROM Bungalows b
+        WHERE c.idCamping = b.idCamping
+          AND NOT EXISTS(
+                SELECT *
+                FROM Proposer p
+                WHERE b.idBungalow = p.idBungalow
+            )
+    )
+  AND c.idCamping IN (
+    SELECT idCamping
+    FROM Bungalows
+);
+
+--R59
+SELECT nomBungalow, nomService
+FROM Services s
+         JOIN Proposer p ON s.idService = p.idService
+         JOIN Bungalows b ON p.idBungalow = b.idBungalow
+WHERE idCamping = 'CAMP1'
+  AND NOT EXISTS(
+    SELECT *
+    FROM Services s1
+             JOIN Proposer p ON s1.idService = p.idService
+             JOIN Bungalows b ON p.idBungalow = b.idBungalow
+    WHERE idCamping = 'CAMP1'
+      AND categorieService = 'Luxe'
+      AND s.idBungalow = s1.idBungalow
+
+      )
+
+
+
+
+
 
 
 
