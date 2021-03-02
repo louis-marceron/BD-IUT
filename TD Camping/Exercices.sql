@@ -462,17 +462,29 @@ WHERE prenomClient LIKE 'J%'
     );
 
 --R39
-SELECT categorieService
-FROM Services s
+SELECT DISTINCT categorieService
+FROM Services s1
 WHERE NOT EXISTS(
         SELECT *
-        FROM Proposer p
+        FROM Services s2
+                 JOIN Proposer p ON s2.idService = p.idService
                  JOIN Bungalows b ON p.idBungalow = b.idBungalow
                  JOIN Campings c ON b.idCamping = c.idCamping
         WHERE nomCamping = 'La Décharge Monochrome'
-          AND s.idService = p.idService
+          AND s1.categorieService = s2.categorieService
     );
-
+--ou
+SELECT DISTINCT categorieService
+FROM Services
+WHERE categorieService IN (
+    SELECT categorieService
+    FROM Services MINUS
+SELECT categorieService
+FROM Services s
+         JOIN Proposer p ON s.idService = p.idService
+         JOIN Bungalows b ON p.idBungalow = b.idBungalow
+         JOIN Campings c ON b.idCamping = c.idCamping
+WHERE nomCamping = 'La Décharge Monochrome' );
 
 
 
