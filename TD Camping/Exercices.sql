@@ -599,23 +599,48 @@ WHERE NOT EXISTS(
     FROM Bungalows
 );
 
---R59
-SELECT nomBungalow, nomService
-FROM Services s
-         JOIN Proposer p ON s.idService = p.idService
-         JOIN Bungalows b ON p.idBungalow = b.idBungalow
-WHERE idCamping = 'CAMP1'
-  AND NOT EXISTS(
-    SELECT *
-    FROM Services s1
-             JOIN Proposer p ON s1.idService = p.idService
-             JOIN Bungalows b ON p.idBungalow = b.idBungalow
-    WHERE idCamping = 'CAMP1'
-      AND categorieService = 'Luxe'
-      AND s.idBungalow = s1.idBungalow
+-- --R59
+-- SELECT nomBungalow, nomService
+-- FROM Services s
+--          JOIN Proposer p ON s.idService = p.idService
+--          JOIN Bungalows b ON p.idBungalow = b.idBungalow
+-- WHERE idCamping = 'CAMP1'
+--   AND NOT EXISTS(
+--     SELECT *
+--     FROM Services s1
+--              JOIN Proposer p ON s1.idService = p.idService
+--              JOIN Bungalows b ON p.idBungalow = b.idBungalow
+--     WHERE idCamping = 'CAMP1'
+--       AND categorieService = 'Luxe'
+--       AND s.idBungalow = s1.idBungalow
+--
+--       )
 
-      )
+--R6A
+SELECT categorieService, COUNT(*)
+FROM Services
+GROUP BY categorieService;
 
+--R6B
+SELECT villeClient
+FROM Clients
+GROUP BY villeClient
+HAVING COUNT(*) >= 3;
+
+--R6C
+SELECT nomCamping, AVG(salaireEmploye)
+FROM Employes e
+JOIN Campings c ON e.idCamping = c.idCamping
+GROUP BY nomCamping, c.idCamping;
+
+--R6D
+SELECT nomCamping
+FROM Campings c
+JOIN Employes e ON c.idCamping = e.idCamping
+GROUP BY c.idCamping, nomCamping
+HAVING COUNT(*) > 3;
+
+--R60
 
 
 
