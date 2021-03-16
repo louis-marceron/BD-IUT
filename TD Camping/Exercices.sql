@@ -630,35 +630,35 @@ HAVING COUNT(*) >= 3;
 --R6C
 SELECT nomCamping, AVG(salaireEmploye)
 FROM Employes e
-JOIN Campings c ON e.idCamping = c.idCamping
+         JOIN Campings c ON e.idCamping = c.idCamping
 GROUP BY nomCamping, c.idCamping;
 
 --R6D
 SELECT nomCamping
 FROM Campings c
-JOIN Employes e ON c.idCamping = e.idCamping
+         JOIN Employes e ON c.idCamping = e.idCamping
 GROUP BY c.idCamping, nomCamping
 HAVING COUNT(*) > 3;
 
 --R60
 SELECT nomClient, prenomClient, COUNT(*)
 FROM Clients c
-JOIN Locations l ON c.idClient = l.idClient
+         JOIN Locations l ON c.idClient = l.idClient
 GROUP BY nomClient, prenomClient, c.idClient
 ORDER BY COUNT(*) DESC;
 
 --R61
 SELECT nomCamping
 FROM Campings c
-JOIN Employes e ON c.idCamping = e.idCamping
+         JOIN Employes e ON c.idCamping = e.idCamping
 GROUP BY c.idCamping, nomCamping
 HAVING AVG(salaireEmploye) > 1400;
 
 --R62
 SELECT nomClient, prenomClient
 FROM Clients c
-JOIN Locations l ON c.idClient = l.idClient
-JOIN Bungalows b ON l.idBungalow = b.idBungalow
+         JOIN Locations l ON c.idClient = l.idClient
+         JOIN Bungalows b ON l.idBungalow = b.idBungalow
 GROUP BY nomClient, prenomClient, c.idClient
 HAVING COUNT(DISTINCT idCamping) = 2
 ORDER BY nomClient, prenomClient;
@@ -666,14 +666,14 @@ ORDER BY nomClient, prenomClient;
 --R63
 SELECT nomBungalow, COUNT(idService)
 FROM Bungalows b
-LEFT JOIN Proposer p ON b.idBungalow = p.idBungalow
+         LEFT JOIN Proposer p ON b.idBungalow = p.idBungalow
 GROUP BY nomBungalow, b.idBungalow
 ORDER BY COUNT(idService) DESC;
 
 --R64
 SELECT nomCamping
 FROM Campings c
-JOIN Bungalows b ON c.idCamping = b.idCamping
+         JOIN Bungalows b ON c.idCamping = b.idCamping
 WHERE superficieBungalow < 65
 GROUP BY nomCamping, c.idCamping
 ORDER BY COUNT(*);
@@ -681,26 +681,48 @@ ORDER BY COUNT(*);
 --R65
 SELECT nomCamping
 FROM Campings c
-JOIN Employes e ON c.idCamping = e.idCamping
+         JOIN Employes e ON c.idCamping = e.idCamping
 GROUP BY nomCamping, c.idCamping
 HAVING MIN(salaireEmploye) >= 1000;
 
 --R66
 SELECT nomBungalow
 FROM Bungalows b
-JOIN Proposer p ON b.idBungalow = p.idBungalow
+         JOIN Proposer p ON b.idBungalow = p.idBungalow
 GROUP BY nomBungalow, b.idBungalow
 HAVING COUNT(*) = (
-SELECT COUNT(*)
-FROM Bungalows b
-JOIN Proposer p ON b.idBungalow = p.idBungalow
-WHERE nomBungalow = 'Le Royal'
+    SELECT COUNT(*)
+    FROM Bungalows b
+             JOIN Proposer p ON b.idBungalow = p.idBungalow
+    WHERE nomBungalow = 'Le Royal'
 );
 
 --R67
+SELECT nomBungalow, COUNT(l.idBungalow)
+FROM Bungalows b
+         LEFT JOIN Locations l ON b.idBungalow = l.idBungalow
+         JOIN Campings c ON b.idCamping = c.idCamping
+WHERE nomCamping = 'La Décharge Monochrome'
+GROUP BY nomBungalow, b.idBungalow
+ORDER BY COUNT(*) DESC;
 
+--R68
+SELECT nomClient, prenomClient
+FROM Clients c
+         JOIN Locations l ON c.idClient = l.idClient
+GROUP BY nomClient, prenomClient, c.idClient
+HAVING COUNT(*) >= 2
+   AND AVG(montantLocation) > 1100;
 
-
+--R69
+SELECT nomBungalow
+FROM Bungalows b
+         JOIN Proposer p ON b.idBungalow = p.idBungalow
+GROUP BY nomBungalow, b.idBungalow
+HAVING MAX((SELECT COUNT(*)
+                   FROM Bungalows b
+                            JOIN Proposer p ON b.idBungalow = p.idBungalow
+                   GROUP BY nomBungalow, b.idBungalow ));
 
 
 
