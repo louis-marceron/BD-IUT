@@ -814,13 +814,95 @@ AND superficieBungalow = (
 SELECT nomBungalow
 FROM Bungalows
 WHERE idBungalow IN (
-    SELECT l1.idBungalow
-    FROM Locations l1
-    JOIN Locations l2 ON l1.idBungalow = l2.idBungalow
-    AND l1.idLocation != l2.idLocation
+    SELECT idBungalow
+    FROM Locations
+    GROUP BY idBungalow
+    HAVING COUNT(*) > 2
     INTERSECT
-    SELECT p1.idBungalow
-    FROM Proposer p1
-    JOIN Proposer p2 ON p1.idBungalow = p2.idBungalow
-    AND p1.idService != p2.idService
+    SELECT idBungalow
+    FROM Proposer
+    GROUP BY idBungalow
+    HAVING COUNT(*) > 1
+    );
+
+--R86
+SELECT nomBungalow
+FROM Bungalows b
+WHERE NOT EXISTS (
+    SELECT *
+    FROM Locations l
+    WHERE dateDebut <= '31/08/2017' AND dateFin >= '01/08/2017'
+    AND b.idBungalow = l.idBungalow
 );
+
+--R87
+SELECT chef.nomEmploye
+FROM Employes chef
+JOIN Employes sub ON chef.idEmploye = sub.idEmployeChef
+GROUP BY chef.nomEmploye, chef.idEmploye
+HAVING COUNT(*) > 1;
+
+--R88
+SELECT nomClient, prenomClient
+FROM Clients c
+WHERE NOT EXISTS (
+    SELECT *
+    FROM Locations l
+    WHERE montantLocation <= 1200
+    AND c.idClient = l.idClient
+    )
+AND c.idClient IN (
+    SELECT idClient
+    FROM Locations
+);
+
+--R89
+SELECT nomCamping
+FROM Campings c
+WHERE NOT EXISTS (
+    SELECT *
+    FROM Bungalows b
+    JOIN Proposer p ON b.idBungalow = p.idBungalow
+    WHERE c.idCamping = b.idCamping
+    GROUP BY b.idCamping
+    HAVING COUNT(*) > 4
+);
+
+--R90
+SELECT nomBungalow
+FROM Bungalows b
+WHERE superficieBungalow IN (
+    SELECT MIN(superficieBungalow)
+    FROM Bungalows b
+    WHERE NOT EXISTS (
+        SELECT *
+        FROM Locations l
+        WHERE b.idBungalow = l.idBungalow
+    )
+)
+AND NOT EXISTS (
+    SELECT *
+    FROM Locations l
+    WHERE b.idBungalow = l.idBungalow
+);
+
+--R91 (FAUX)
+SELECT nomClient, prenomClient, SUM(montantLocation)
+FROM Clients c
+LEFT JOIN Locations l ON c.idClient = l.idClient
+WHERE villeClient = 'Paris' AND dateDebut <= '31/08/2017' AND dateFin >= '01/08/2017'
+GROUP BY nomClient, prenomClient, c.idClient;
+UNION
+SELECT nomClient, prenomClient, SUM(montantLocation)
+FROM Clients c
+LEFT JOIN Locations l ON c.idClient = l.idClient
+WHERE villeClient = 'Paris' AND nomClient != 'Tare'
+
+--R92
+SELECT nomCamping, nomEmploye, prenomEmploye
+FROM Campings c
+JOIN Employes e ON c.idCamping = e.idCamping
+WHERE salaireEmploye IN (
+    SELECT MAX(salaireEmploye)
+    FROM Employes
+)
