@@ -906,3 +906,106 @@ WHERE salaireEmploye IN (
     SELECT MAX(salaireEmploye)
     FROM Employes
 )
+
+--R100
+SELECT nomBungalow
+FROM Bungalows b
+WHERE NOT EXISTS (
+    SELECT idService
+    FROM Services
+    MINUS
+    SELECT idService
+    FROM Proposer p
+    WHERE b.idBungalow = p.idBungalow
+);
+--ou
+SELECT nomBungalow
+FROM Bungalows b
+JOIN Proposer p ON b.idBungalow = p.idBungalow
+GROUP BY nomBungalow, b.idBungalow
+HAVING COUNT(*) = (
+    SELECT COUNT(*)
+    FROM Services
+);
+
+--R101
+SELECT nomBungalow
+FROM Bungalows b
+WHERE NOT EXISTS (
+    SELECT idService
+    FROM Services
+    WHERE categorieService = 'Luxe'
+    MINUS
+    SELECT idService
+    FROM Proposer p
+    WHERE b.idBungalow = p.idBungalow
+);
+--ou
+SELECT nomBungalow
+FROM Bungalows b
+JOIN Proposer p ON b.idBungalow = p.idBungalow
+JOIN Services s ON p.idService = s.idService
+WHERE categorieService = 'Luxe'
+GROUP BY nomBungalow, b.idBungalow
+HAVING COUNT(*) = (
+    SELECT COUNT(*)
+    FROM Services
+    WHERE categorieService = 'Luxe'
+);
+
+--R102
+SELECT nomBungalow
+FROM Bungalows b
+WHERE NOT EXISTS (
+    SELECT s.idService
+    FROM Services s
+    JOIN Proposer p ON s.idService = p.idService
+    JOIN Bungalows b ON p.idBungalow = b.idBungalow
+    WHERE nomBungalow = 'La Poubelle'
+    MINUS
+    SELECT p.idService
+    FROM Proposer p
+    WHERE b.idBungalow = p.idBungalow
+);
+--ou
+SELECT nomBungalow
+FROM Bungalows b
+JOIN Proposer p ON b.idBungalow = p.idBungalow
+WHERE idService IN (
+    SELECT idService
+    FROM Proposer p
+    JOIN Bungalows b ON p.idBungalow = b.idBungalow
+    WHERE nomBungalow = 'La Poubelle'
+)
+GROUP BY nomBungalow, b.idBungalow
+HAVING COUNT(*) = (
+    SELECT COUNT(*)
+    FROM Bungalows b
+    JOIN Proposer p ON b.idBungalow = p.idBungalow
+    WHERE nomBungalow = 'La Poubelle'
+);
+
+--R103
+SELECT nomClient
+FROM Clients c
+JOIN Locations l ON c.idClient = l.idClient
+JOIN Bungalows b ON l.idBungalow = b.idBungalow
+JOIN Campings camp ON b.idCamping = camp.idCamping
+GROUP BY nomClient, c.idClient
+HAVING COUNT(DISTINCT villeCamping) = (
+    SELECT COUNT(DISTINCT villeCamping)
+    FROM Campings
+);
+--ou
+SELECT nomClient
+FROM Clients c
+WHERE NOT EXISTS (
+    SELECT villeCamping
+    FROM Campings
+    MINUS
+    SELECT villeCamping
+    FROM Campings camp
+    JOIN Bungalows b ON camp.idCamping = b.idCamping
+    JOIN Locations l ON b.idBungalow = l.idBungalow
+    WHERE c.idClient = l.idClient
+);
