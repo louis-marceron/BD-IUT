@@ -720,9 +720,9 @@ FROM Bungalows b
          JOIN Proposer p ON b.idBungalow = p.idBungalow
 GROUP BY nomBungalow, b.idBungalow
 HAVING COUNT(*) = ((SELECT MAX(COUNT(*))
-                   FROM Bungalows b
-                            JOIN Proposer p ON b.idBungalow = p.idBungalow
-                   GROUP BY nomBungalow, b.idBungalow );
+                    FROM Bungalows b
+                             JOIN Proposer p ON b.idBungalow = p.idBungalow
+                    GROUP BY nomBungalow, b.idBungalow);
 
 --R70
 SELECT villeCamping, COUNT(*) AS "Nb de campings"
@@ -732,34 +732,34 @@ GROUP BY villeCamping;
 --R71
 SELECT nomCamping
 FROM Campings c
-JOIN Employes e ON c.idCamping = e.idCamping
+         JOIN Employes e ON c.idCamping = e.idCamping
 GROUP BY nomCamping, c.idCamping
 HAVING COUNT(*) > 3;
 
 --R72
 SELECT nomCamping, COUNT(idEmploye)
 FROM Campings c
-LEFT JOIN Employes e ON c.idCamping = e.idCamping
+         LEFT JOIN Employes e ON c.idCamping = e.idCamping
 GROUP BY nomCamping, c.idCamping
 ORDER BY COUNT(idEmploye) DESC;
 
 --R73
 SELECT nomService, COUNT(DISTINCT b.idCamping)
 FROM Services s
-LEFT JOIN Proposer p ON s.idService = p.idService
-LEFT JOIN Bungalows b ON p.idBungalow = b.idBungalow
+         LEFT JOIN Proposer p ON s.idService = p.idService
+         LEFT JOIN Bungalows b ON p.idBungalow = b.idBungalow
 WHERE categorieService = 'Luxe'
 GROUP BY nomService, s.idService;
 
 --R74
 SELECT nomClient, prenomClient
 FROM Clients c
-JOIN Locations l ON c.idClient = l.idClient
+         JOIN Locations l ON c.idClient = l.idClient
 GROUP BY nomClient, prenomClient, c.idClient
 HAVING COUNT(*) = (
     SELECT MAX(COUNT(*))
     FROM Clients c
-    JOIN Locations l ON c.idClient = l.idClient
+             JOIN Locations l ON c.idClient = l.idClient
     GROUP BY nomClient, prenomClient, c.idClient
 );
 
@@ -769,44 +769,44 @@ FROM Bungalows
 WHERE idBungalow IN (
     SELECT p.idBungalow
     FROM Proposer p
-    JOIN Locations l ON p.idBungalow = l.idBungalow
-    JOIN Services s ON p.idService = s.idService
+             JOIN Locations l ON p.idBungalow = l.idBungalow
+             JOIN Services s ON p.idService = s.idService
     WHERE nomService = 'Kit de Bain'
 );
 
 --R81
 SELECT nomBungalow
 FROM Bungalows b
-JOIN Locations l ON b.idBungalow = l.idBungalow
+         JOIN Locations l ON b.idBungalow = l.idBungalow
 GROUP BY nomBungalow, b.idBungalow
 HAVING COUNT(*) > 4;
 
 --R82
 SELECT COUNT(*) AS "Nombre de clients"
 FROM Clients c
-WHERE NOT EXISTS (
-    SELECT *
-    FROM Campings camp
-    WHERE c.villeClient = camp.villeCamping
-);
+WHERE NOT EXISTS(
+        SELECT *
+        FROM Campings camp
+        WHERE c.villeClient = camp.villeCamping
+    );
 
 --R83
 SELECT nomBungalow, COUNT(idService)
 FROM Bungalows b
-LEFT JOIN Proposer p ON b.idBungalow = p.idBungalow
-JOIN Campings c ON b.idCamping = c.idCamping
+         LEFT JOIN Proposer p ON b.idBungalow = p.idBungalow
+         JOIN Campings c ON b.idCamping = c.idCamping
 WHERE nomCamping = 'La Décharge Monochrome'
 GROUP BY nomBungalow, b.idBungalow;
 
 --84
 SELECT nomBungalow
 FROM Bungalows b
-JOIN Campings c ON b.idCamping = c.idCamping
+         JOIN Campings c ON b.idCamping = c.idCamping
 WHERE nomCamping = 'Les Flots Bleus'
-AND superficieBungalow = (
+  AND superficieBungalow = (
     SELECT MIN(superficieBungalow)
     FROM Bungalows b
-    JOIN Campings c ON b.idCamping = c.idCamping
+             JOIN Campings c ON b.idCamping = c.idCamping
     WHERE nomCamping = 'Les Flots Bleus'
 );
 
@@ -823,35 +823,36 @@ WHERE idBungalow IN (
     FROM Proposer
     GROUP BY idBungalow
     HAVING COUNT(*) > 1
-    );
+);
 
 --R86
 SELECT nomBungalow
 FROM Bungalows b
-WHERE NOT EXISTS (
-    SELECT *
-    FROM Locations l
-    WHERE dateDebut <= '31/08/2017' AND dateFin >= '01/08/2017'
-    AND b.idBungalow = l.idBungalow
-);
+WHERE NOT EXISTS(
+        SELECT *
+        FROM Locations l
+        WHERE dateDebut <= '31/08/2017'
+          AND dateFin >= '01/08/2017'
+          AND b.idBungalow = l.idBungalow
+    );
 
 --R87
 SELECT chef.nomEmploye
 FROM Employes chef
-JOIN Employes sub ON chef.idEmploye = sub.idEmployeChef
+         JOIN Employes sub ON chef.idEmploye = sub.idEmployeChef
 GROUP BY chef.nomEmploye, chef.idEmploye
 HAVING COUNT(*) > 1;
 
 --R88
 SELECT nomClient, prenomClient
 FROM Clients c
-WHERE NOT EXISTS (
-    SELECT *
-    FROM Locations l
-    WHERE montantLocation <= 1200
-    AND c.idClient = l.idClient
+WHERE NOT EXISTS(
+        SELECT *
+        FROM Locations l
+        WHERE montantLocation <= 1200
+          AND c.idClient = l.idClient
     )
-AND c.idClient IN (
+  AND c.idClient IN (
     SELECT idClient
     FROM Locations
 );
@@ -859,14 +860,14 @@ AND c.idClient IN (
 --R89
 SELECT nomCamping
 FROM Campings c
-WHERE NOT EXISTS (
-    SELECT *
-    FROM Bungalows b
-    JOIN Proposer p ON b.idBungalow = p.idBungalow
-    WHERE c.idCamping = b.idCamping
-    GROUP BY b.idCamping
-    HAVING COUNT(*) > 4
-);
+WHERE NOT EXISTS(
+        SELECT *
+        FROM Bungalows b
+                 JOIN Proposer p ON b.idBungalow = p.idBungalow
+        WHERE c.idCamping = b.idCamping
+        GROUP BY b.idCamping
+        HAVING COUNT(*) > 4
+    );
 
 --R90
 SELECT nomBungalow
@@ -874,34 +875,37 @@ FROM Bungalows b
 WHERE superficieBungalow IN (
     SELECT MIN(superficieBungalow)
     FROM Bungalows b
-    WHERE NOT EXISTS (
+    WHERE NOT EXISTS(
+            SELECT *
+            FROM Locations l
+            WHERE b.idBungalow = l.idBungalow
+        )
+)
+  AND NOT EXISTS(
         SELECT *
         FROM Locations l
         WHERE b.idBungalow = l.idBungalow
-    )
-)
-AND NOT EXISTS (
-    SELECT *
-    FROM Locations l
-    WHERE b.idBungalow = l.idBungalow
-);
+    );
 
 --R91 (FAUX)
 SELECT nomClient, prenomClient, SUM(montantLocation)
 FROM Clients c
-LEFT JOIN Locations l ON c.idClient = l.idClient
-WHERE villeClient = 'Paris' AND dateDebut <= '31/08/2017' AND dateFin >= '01/08/2017'
+         LEFT JOIN Locations l ON c.idClient = l.idClient
+WHERE villeClient = 'Paris'
+  AND dateDebut <= '31/08/2017'
+  AND dateFin >= '01/08/2017'
 GROUP BY nomClient, prenomClient, c.idClient;
 UNION
 SELECT nomClient, prenomClient, SUM(montantLocation)
 FROM Clients c
-LEFT JOIN Locations l ON c.idClient = l.idClient
-WHERE villeClient = 'Paris' AND nomClient != 'Tare'
+         LEFT JOIN Locations l ON c.idClient = l.idClient
+WHERE villeClient = 'Paris'
+  AND nomClient != 'Tare'
 
 --R92
 SELECT nomCamping, nomEmploye, prenomEmploye
 FROM Campings c
-JOIN Employes e ON c.idCamping = e.idCamping
+         JOIN Employes e ON c.idCamping = e.idCamping
 WHERE salaireEmploye IN (
     SELECT MAX(salaireEmploye)
     FROM Employes
@@ -910,18 +914,17 @@ WHERE salaireEmploye IN (
 --R100
 SELECT nomBungalow
 FROM Bungalows b
-WHERE NOT EXISTS (
-    SELECT idService
-    FROM Services
-    MINUS
-    SELECT idService
-    FROM Proposer p
-    WHERE b.idBungalow = p.idBungalow
-);
+WHERE NOT EXISTS(
+        SELECT idService
+        FROM Services MINUS
+        SELECT idService
+        FROM Proposer p
+        WHERE b.idBungalow = p.idBungalow
+    );
 --ou
 SELECT nomBungalow
 FROM Bungalows b
-JOIN Proposer p ON b.idBungalow = p.idBungalow
+         JOIN Proposer p ON b.idBungalow = p.idBungalow
 GROUP BY nomBungalow, b.idBungalow
 HAVING COUNT(*) = (
     SELECT COUNT(*)
@@ -931,20 +934,20 @@ HAVING COUNT(*) = (
 --R101
 SELECT nomBungalow
 FROM Bungalows b
-WHERE NOT EXISTS (
-    SELECT idService
-    FROM Services
-    WHERE categorieService = 'Luxe'
-    MINUS
-    SELECT idService
-    FROM Proposer p
-    WHERE b.idBungalow = p.idBungalow
-);
+WHERE NOT EXISTS(
+        SELECT idService
+        FROM Services
+        WHERE categorieService = 'Luxe'
+        MINUS
+        SELECT idService
+        FROM Proposer p
+        WHERE b.idBungalow = p.idBungalow
+    );
 --ou
 SELECT nomBungalow
 FROM Bungalows b
-JOIN Proposer p ON b.idBungalow = p.idBungalow
-JOIN Services s ON p.idService = s.idService
+         JOIN Proposer p ON b.idBungalow = p.idBungalow
+         JOIN Services s ON p.idService = s.idService
 WHERE categorieService = 'Luxe'
 GROUP BY nomBungalow, b.idBungalow
 HAVING COUNT(*) = (
@@ -956,41 +959,41 @@ HAVING COUNT(*) = (
 --R102
 SELECT nomBungalow
 FROM Bungalows b
-WHERE NOT EXISTS (
-    SELECT s.idService
-    FROM Services s
-    JOIN Proposer p ON s.idService = p.idService
-    JOIN Bungalows b ON p.idBungalow = b.idBungalow
-    WHERE nomBungalow = 'La Poubelle'
-    MINUS
-    SELECT p.idService
-    FROM Proposer p
-    WHERE b.idBungalow = p.idBungalow
-);
+WHERE NOT EXISTS(
+        SELECT s.idService
+        FROM Services s
+                 JOIN Proposer p ON s.idService = p.idService
+                 JOIN Bungalows b ON p.idBungalow = b.idBungalow
+        WHERE nomBungalow = 'La Poubelle'
+        MINUS
+        SELECT p.idService
+        FROM Proposer p
+        WHERE b.idBungalow = p.idBungalow
+    );
 --ou
 SELECT nomBungalow
 FROM Bungalows b
-JOIN Proposer p ON b.idBungalow = p.idBungalow
+         JOIN Proposer p ON b.idBungalow = p.idBungalow
 WHERE idService IN (
     SELECT idService
     FROM Proposer p
-    JOIN Bungalows b ON p.idBungalow = b.idBungalow
+             JOIN Bungalows b ON p.idBungalow = b.idBungalow
     WHERE nomBungalow = 'La Poubelle'
 )
 GROUP BY nomBungalow, b.idBungalow
 HAVING COUNT(*) = (
     SELECT COUNT(*)
     FROM Bungalows b
-    JOIN Proposer p ON b.idBungalow = p.idBungalow
+             JOIN Proposer p ON b.idBungalow = p.idBungalow
     WHERE nomBungalow = 'La Poubelle'
 );
 
 --R103
 SELECT nomClient
 FROM Clients c
-JOIN Locations l ON c.idClient = l.idClient
-JOIN Bungalows b ON l.idBungalow = b.idBungalow
-JOIN Campings camp ON b.idCamping = camp.idCamping
+         JOIN Locations l ON c.idClient = l.idClient
+         JOIN Bungalows b ON l.idBungalow = b.idBungalow
+         JOIN Campings camp ON b.idCamping = camp.idCamping
 GROUP BY nomClient, c.idClient
 HAVING COUNT(DISTINCT villeCamping) = (
     SELECT COUNT(DISTINCT villeCamping)
@@ -999,13 +1002,303 @@ HAVING COUNT(DISTINCT villeCamping) = (
 --ou
 SELECT nomClient
 FROM Clients c
-WHERE NOT EXISTS (
-    SELECT villeCamping
-    FROM Campings
-    MINUS
-    SELECT villeCamping
-    FROM Campings camp
-    JOIN Bungalows b ON camp.idCamping = b.idCamping
-    JOIN Locations l ON b.idBungalow = l.idBungalow
-    WHERE c.idClient = l.idClient
-);
+WHERE NOT EXISTS(
+        SELECT villeCamping
+        FROM Campings MINUS
+        SELECT villeCamping
+        FROM Campings camp
+        JOIN Bungalows b ON camp.idCamping = b.idCamping
+        JOIN Locations l ON b.idBungalow = l.idBungalow
+        WHERE c.idClient = l.idClient
+    );
+
+--R104
+select nomclient
+from clients c
+where not exists(
+        select l.idbungalow
+        from locations l
+                 join clients c on l.idclient = c.idclient
+        where nomclient = 'Zeblouse'
+          and prenomclient = 'Agathe'
+        minus
+        select l.idbungalow
+        from locations l
+        where c.idclient = l.idclient);
+--ou
+select nomclient
+from clients c
+         join locations l on c.idclient = l.idclient
+where idbungalow in (
+    select idbungalow
+    from locations l
+             join clients c on l.idclient = c.idclient
+    where nomclient = 'Zeblouse'
+      and prenomclient = 'Agathe'
+)
+group by nomclient, c.idclient
+having count(*) =
+       (select count(*)
+        from locations l
+                 join clients c on l.idclient = c.idclient
+        where nomclient = 'Zeblouse'
+          and prenomclient = 'Agathe');
+
+--R105
+select nomclient, prenomclient
+from clients c
+where not exists(
+        select idcamping
+        from bungalows b
+                 join locations l on b.idbungalow = l.idbungalow
+                 join clients c on l.idclient = c.idclient
+        where prenomclient = 'Agathe'
+          and nomclient = 'Zeblouse'
+        minus
+        select idcamping
+        from bungalows b
+        join locations l on b.idbungalow = l.idbungalow
+        where c.idclient = l.idclient
+    )
+  and not exists(
+        select idcamping
+        from bungalows b
+                 join locations l on b.idbungalow = l.idbungalow
+        where c.idclient = l.idclient
+        minus
+        select idcamping
+        from bungalows b
+        join locations l on b.idbungalow = l.idbungalow
+        join clients c on l.idclient = c.idclient
+        where prenomclient = 'Agathe' and nomclient = 'Zeblouse'
+    );
+--ou
+select nomclient, prenomclient
+from clients c
+         join locations l on c.idclient = l.idclient
+         join bungalows b on l.idbungalow = b.idbungalow
+where not exists(
+        select b.idcamping
+        from bungalows b
+                 join locations l on b.idbungalow = l.idbungalow
+        where c.idclient = l.idclient
+        minus
+        select b.idcamping
+        from bungalows b
+        join locations l on b.idbungalow = l.idbungalow
+        join clients c on l.idclient = c.idclient
+        where prenomclient = 'Agathe' and nomclient = 'Zeblouse')
+group by nomclient, prenomclient, c.idclient
+having count(distinct idcamping) = (
+    select count(distinct idcamping)
+    from bungalows b
+             join locations l on b.idbungalow = l.idbungalow
+             join clients c on l.idclient = c.idclient
+    where prenomclient = 'Agathe'
+      and nomclient = 'Zeblouse');
+
+--R110
+select nomservice
+from services s
+where not exists(
+        select idbungalow
+        from bungalows
+        where superficiebungalow > 60
+        minus
+        select b.idbungalow
+        from bungalows b
+        join proposer p on b.idbungalow = p.idbungalow
+        where s.idservice = p.idservice);
+
+--R111
+select c.idclient, nomclient, prenomclient
+from clients c
+         join locations l on c.idclient = l.idlocation
+         join bungalows b on l.idbungalow = b.idbungalow
+         join campings camp on camp.idcamping = b.idbungalow
+where not exists(
+        select idcamping
+        from campings
+        where villecamping = 'Palavas'
+        minus
+        select idcamping
+        from campings
+        where idcamping = camp.idcamping);
+
+--Vues et Confidentialité de la base de données
+--1)
+create
+or replace view bungalowslfb as
+select idbungalow, nombungalow, superficiebungalow
+from bungalows b
+         join campings c on b.idcamping = c.idcamping
+where nomcamping = 'Les Flots Bleus';
+--
+select count(*)
+from bungalowslfb;
+
+--2)
+create
+or replace view locationslfb as
+select idlocation, c.idclient, nomclient, prenomclient, b.idbungalow, nombungalow
+from bungalowslfb b
+         join locations l on b.idbungalow = l.idbungalow
+         join clients c on l.idclient = c.idclient;
+--
+select idbungalow, nombungalow, count(*)
+from locationslfb
+group by idbungalow, nombungalow
+
+--3)
+create
+or replace view employessanscamping as
+select idEmploye, nomEmploye, prenomEmploye, salaireEmploye, idEmployeChef
+from employes e
+where not exists(
+        select *
+        from campings c
+        where e.idcamping = c.idcamping);
+-- ° Il est possible d'insérer des lignes dans la table employessanscamping car la clef primaire de la table source
+-- est comprise dans la vue.
+-- ° Il possible de supprimer/modifier des lignes de la table employessanscamping car elle n'est pas en lecture seule,
+-- elle n'a pas de fonctions DISTINCT ou AVG/SUM/MIN et elle n'a pas de GROUP BY, de ORDER BY ou de HAVING.
+
+insert into employessanscamping
+values ('E100', 'Stiko', 'Judas', 3000, null);
+
+update employessanscamping
+set nomemploye = 'Nana'
+where idemploye = 'E100';
+
+delete
+from employessanscamping
+where idemploye = 'E100';
+
+--4)
+create
+or replace view employeaveccamping as
+select nomEmploye, prenomEmploye, salaireEmploye
+from employes e
+         join campings c on e.idcamping = c.idcamping;
+
+-- ° Il n'est pas possible d'insérer des lignes dans la table employessanscamping car la clef primaire de la table source
+-- n'est pas comprise dans la vue.
+-- ° Il possible de supprimer/modifier des lignes de la table employessanscamping car elle n'est pas en lecture seule,
+-- elle n'a pas de fonctions DISTINCT ou AVG/SUM/MIN et elle n'a pas de GROUP BY, de ORDER BY ou de HAVING.
+
+insert into employeaveccamping
+values ('Nana', 'Stiko', 'Judas', 5000);
+
+update employeaveccamping
+set nomemploye = 'Javel'
+where prenomemploye = 'Aude';
+
+delete
+from employeaveccamping
+where prenomemploye = 'Aude';
+
+--5)
+create
+or replace view clientsparville as
+select villeclient, count(*) as nbClients
+from clients
+group by villeclient;
+
+-- ° Il n'est pas possible d'insérer des lignes dans la table employessanscamping car la clef primaire de la table source
+-- n'est pas comprise dans la vue.
+-- ° Il possible de supprimer/modifier des lignes de la table employessanscamping car elle a un GROUP BY.
+
+insert into clientsparville
+values ('Rodez', 3);
+
+update clientsparville
+set villeclients = 'Lunel'
+where villeclients = 'Montpellier';
+
+delete from clientsparville
+where count(*) = 2;
+
+--6)
+create or replace view BungalowsEtCampings as
+select idBungalow, nomBungalow, superficieBungalow, b.idCamping, nomCamping
+from bungalows b
+         join campings c on b.idcamping = c.idcamping;
+
+insert into BungalowsEtCampings
+values ( 'B13', 'Le Souterrain', 75, 'CAMP10', 'Yellow Shark');
+-- Ce n'est pas possible d'inserer
+
+insert into BungalowsEtCampings
+values ( 'B13', 'Le Souterrain', 75, 'CAMP10', 'Yellow Shark');
+
+--1)
+set serveroutput on;
+
+declare
+v_nbJoueursC1 number;
+begin
+    select count(*) into v_nbJoueursC1
+    from joueurs
+    where idclub = 'C1';
+    dbms_output.put_line('Il y a ' || v_nbJoueursC1 || ' joueurs dans le club C1');
+end;
+
+--2)
+accept s_idClub prompt 'Saisir l''identifiant du club';
+declare
+v_nbJoueurs number;
+begin
+    select count(*) into v_nbJoueurs
+    from joueurs
+    where idclub = '&s_idClub';
+    dbms_output.put_line(
+end;
+
+--3)
+accept s_idClub prompt 'Saisir l''identifiant du club';
+declare
+v_nbJoueurs number;
+v_clubExiste number;
+begin
+    select count(*) into v_clubExiste
+    from clubs
+    where idClub = '&s_idClub';
+    if v_clubExiste > 0 then
+        select count(*) into v_nbJoueurs
+        from joueurs
+        where idClub = '&s_idClub';
+        dbms_output.put_line ('Il y a ' || v_nbJoueurs || ' joueurs dans le club ' || '&s_idClub');
+    else
+        dbms_output.put_line('Le club n''existe pas');
+        end if;
+end;
+
+--4)
+accept s_idClub prompt 'Saisir l''identifiant du club';
+declare
+v_nbJoueurs number;
+v_clubExiste Clubs.idClub%TYPE;
+begin
+    select idClub into v_clubExiste
+    from clubs
+    where idClub = '&s_idClub';
+    select count(*) into v_nbJoueurs
+    from joueurs
+    where idClub = '&s_idClub';
+    dbms_output.put_line ('Il y a ' || v_nbJoueurs || ' joueurs dans le club ' || '&s_idClub');
+exception
+    when no_data_found then
+        dbms_output.put_line('Le club n''existe pas');
+end;
+
+--5)
+declare
+v_Tournois Tournois%ROWTYPE;
+begin
+    select * into v_Tournois
+    from tournois
+    where idTournoi = 'T1';
+    dbms_output.put_line ('Identifiant du tournoi : ' || v_Tournois.idTournoi ||
+     ' | Nom tournoi : ' || v_Tournois.nomTournoi || ' | Ville tournoi : ' || v_Tournois.lieuTournoi ||
+     ' | Nombre de ronde de tournoi : ' || v_Tournois.nbRondesTournoi);
+end;
