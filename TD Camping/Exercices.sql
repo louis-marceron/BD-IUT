@@ -1302,3 +1302,145 @@ begin
      ' | Nom tournoi : ' || v_Tournois.nomTournoi || ' | Ville tournoi : ' || v_Tournois.lieuTournoi ||
      ' | Nombre de ronde de tournoi : ' || v_Tournois.nbRondesTournoi);
 end;
+
+--6)
+CREATE OR REPLACE FUNCTION nbJoueursParClub
+(p_idClub IN Clubs.idClub%TYPE)
+RETURN NUMBER IS
+    v_nbJoueurs NUMBER;
+    v_idClub Clubs.idClub%TYPE;
+BEGIN
+SELECT idClub INTO v_idClub
+FROM Clubs
+WHERE idClub = p_idClub;
+
+SELECT COUNT(*) INTO v_nbJoueurs
+FROM Joueurs
+WHERE idClub = p_idClub;
+RETURN v_nbJoueurs;
+EXCEPTION WHEN NO_DATA_FOUND THEN
+    RETURN NULL;
+END;
+
+--7.1)
+CREATE OR REPLACE FUNCTION nbJoueursParLigue
+(p_idLigue IN Ligues.idLigue%TYPE)
+RETURN NUMBER IS
+    v_nbJoueurs NUMBER;
+BEGIN
+SELECT SUM(nbJoueursParClub(idClub)) INTO v_nbJoueurs
+FROM Clubs
+WHERE idLigue = p_idLigue;
+
+RETURN v_nbJoueurs;
+END;
+
+--7.2)
+UPDATE Ligues
+SET nbJoueursLigue = nbJoueursParLigue(idLigue)
+
+SELECT nbJoueursLigue
+FROM Ligues
+WHERE nomLigue = 'Languedoc'
+
+--8)
+CREATE OR REPLACE PROCEDURE affichageInfosTournoi
+(p_idTournoi IN Tournois.idTournoi%TYPE)
+IS
+    rty_Tournoi Tournois%ROWTYPE;
+    v_idTournoi Tournois.idTournoi%TYPE;
+BEGIN
+SELECT idTournoi INTO v_idTournoi
+FROM Tournois
+WHERE idTournoi = p_idTournoi;
+
+SELECT * INTO rty_Tournoi
+FROM Tournois
+WHERE idTournoi = p_idTournoi;
+
+DBMS_OUTPUT.PUT_LINE('Identifiant du tournoi : ' || rty_Tournoi.idTournoi);
+    DBMS_OUTPUT.PUT_LINE('Nom du tournoi : ' || rty_Tournoi.nomTournoi);
+    DBMS_OUTPUT.PUT_LINE('Lieu du tournoi : ' || rty_Tournoi.lieuTournoi);
+    DBMS_OUTPUT.PUT_LINE('Nombre de rondes du tournoi : ' || rty_Tournoi.nbRondesTournoi);
+EXCEPTION WHEN NO_DATA_FOUND THEN
+    DBMS_OUTPUT.PUT_LINE('Le tournoi ' || p_idTournoi || ' n''existe pas ');
+END;
+
+--9)
+CREATE OR REPLACE PROCEDURE miseAJourNbParticipantsTournoi
+IS
+BEGIN
+UPDATE Tournois
+SET nbParticipantsTournoi = (SELECT COUNT(*)
+                             FROM Participer p
+                             WHERE Tournois.idTournoi = p.idTournoi);
+END;
+
+--10)
+create or replace procedure affichageParticipantsTournoi(p_idTournoi IN Tournois.idTournoi%TYPE) is
+    cursor curs_participantsTournoi is
+        select nomJoueur, prenomJoueur, eloJoueur
+        from Joueurs j
+        join Participer p on j.idJoueur = p.idJoueur
+        where idTournoi = p_idTournoi
+        order by eloJoueur desc, nomJoueur;
+    v_idTournoi Tournois.idTournoi%TYPE;
+begin
+    select idTournoi into v_idTournoi
+    from Tournois
+    where idTournoi = p_idTournoi;
+
+    for v_ligne in curs_participantsTournoi loop
+        dbms_output.put_line(v_ligne.nomJoueur || ' ' || v_ligne.prenomJoueur || ' ' || v_ligne.eloJoueur);
+    end loop;
+
+exception when no_data_found then
+    dbms_output.put_line('Le tournoi ' || p_idTournoi || ' n''existe pas ');
+end;
+
+--11)
+create or replace procedure affichageToutTournoi(p_idTournoi IN Tournois.idTournoi%TYPE) is
+    v_idTournoi Tournois.idTournoi%TYPE;
+begin
+    select idTournoi into v_idTournoi
+    from Tournois
+    where idTournoi = p_idTournoi;
+
+    affichageInfosTournoi(p_idTournoi);
+    dbms_output.put_line('Liste des participants :');
+    affichageParticipantsTournoi(p_idTournoi);
+
+exception when no_data_found then
+    dbms_output.put_line('Le tournoi ' || p_idTournoi || ' n''existe pas ');
+end;
+
+--12)
+create or replace PROCEDURE affichageJoueursParLigueEtClub(p_idLigue IN Ligues.idLigue%TYPE) is
+    v_idLigue Tournois.idTournoi%TYPE;
+    cursor curs_clubsLigue is
+        select idClub, nomClub
+        from Clubs
+        where idLigue = p_idLigue
+        order by nomClub;
+
+    cursor curs_joueursClub (v_idClub Clubs.idClub%TYPE) is
+        select nomJoueur, prenomJoueur, eloJoueur, count(idTournoi) as nombreTournois
+        from Joueurs j
+        left join Participer p on j.idJoueur = p.idJoueur
+        where idClub = v_idClub
+        group by j.idJoueur, nomJoueur, prenomJoueur, eloJoueur
+        order by nombreTournois desc, eloJoueur desc;
+begin
+    select idLigue into v_idLigue
+    from Ligues
+    where idLigue = p_idLigue;
+
+    for v_club in curs_clubsLigue loop
+        dbms_output.put_line('Club : ' || v_club.idClub || ' ' || v_club.nomClub || ' ' || '(' || nbJoueursParClub(v_club.idClub) || ' joueurs)');
+        for v_joueurClub in curs_joueursClub(v_club.idClub) loop
+            dbms_output.put_line('-----> ' || v_joueurClub.nomJoueur || ' ' || v_joueurClub.prenomJoueur || ' ' || v_joueurClub.eloJoueur || ' a participé à ' || v_joueurClub.nombreTournois || ' tournoi(s)');
+        end loop;
+    end loop;
+exception when no_data_found then
+    dbms_output.put_line('La ligue ' || p_idLigue || ' n''existe pas ');
+end;
