@@ -1436,7 +1436,7 @@ create or replace PROCEDURE affichageJoueursParLigueEtClub(p_idLigue IN Ligues.i
 begin
     select idLigue into v_idLigue
     from Ligues
-    where idLigue = p_idLigue;
+    where idLigue = p_idLigue; 
 
     for v_club in curs_clubsLigue loop
         dbms_output.put_line('Club : ' || v_club.idClub || ' ' || v_club.nomClub || ' ' || '(' || nbJoueursParClub(v_club.idClub) || ' joueurs)');
@@ -1482,28 +1482,105 @@ begin
     end loop;
 end;
 
---15)
+---15)
 CREATE OR REPLACE PROCEDURE affichageInfosJoueur(p_idJoueur IN Joueurs.idJoueur%TYPE) IS
 v_joueur Joueurs%ROWTYPE;
 BEGIN
     SELECT * INTO v_joueur
     FROM Joueurs
-    WHERE idJoueur = p_idJoueur;
+    WHERE  idJoueur = p_idJoueur;
 
-    DMBS_OUTPUT.PUT_LINE('Identifiant joueur ' || v_joueur.idJoueur);
-    DMBS_OUTPUT.PUT_LINE('Nom joueur ' || v_joueur.nomJoueur);
-    DMBS_OUTPUT.PUT_LINE('Prénom joueur ' || v_joueur.prenomJoueur);
-    DMBS_OUTPUT.PUT_LINE('Elo joueur ' || v_joueur.eloJoueur);
-    DMBS_OUTPUT.PUT_LINE('Catégorie joueur ' || categorieJoueur(v_joueur.dateNaissanceJoueur, v_joueur.sexeJoueur));
-    DMBS_OUTPUT.PUT_LINE('Club joueur ' || v_joueur.clubJoueur);
+    DBMS_OUTPUT.PUT_LINE('Identifiant joueur : '||v_joueur.idJoueur);
+    DBMS_OUTPUT.PUT_LINE('Nom joueur : '||v_joueur.nomJoueur);
+    DBMS_OUTPUT.PUT_LINE('Prénom joueur : '||v_joueur.prenomJoueur);
+    DBMS_OUTPUT.PUT_LINE('Elo joueur : '||v_joueur.eloJoueur);
+    DBMS_OUTPUT.PUT_LINE('Catégorie joueur : '||categorieJoueur(v_joueur.dateNaissanceJoueur, v_joueur.sexeJoueur));
+    DBMS_OUTPUT.PUT_LINE('Club joueur : '||v_joueur.idClub);
 
-EXCEPTION NO_DATA_FOUND THEN
-    DMBS_OUTPUT.PUT_LINE('Le joueur ' || p_idJoueur || ' n''existe pas');
+EXCEPTION WHEN NO_DATA_FOUND THEN
+    DBMS_OUTPUT.PUT_LINE('Le joueur '||p_idJoueur||' n''existe pas');
 END;
 
+--16
+CREATE OR REPLACE FUNCTION resultatEnPoint(p_couleur IN VARCHAR, p_resultat IN Parties.resultatPartie%TYPE) RETURN NUMBER IS
+BEGIN
+    IF p_resultat = '1/2' THEN
+        RETURN 0.5;
+    END IF;
 
+    IF p_couleur = 'B' THEN
+        IF p_resultat = '1-0' THEN
+            RETURN 1;
+        ELSE
+            RETURN 0;
+        END IF;
+    END IF;
 
+    IF p_couleur = 'N' THEN
+        IF p_resultat = '0-1' THEN
+            RETURN 1;
+        ELSE
+            RETURN 0;
+        END IF;
+    END IF;
+END;
 
+--17)
+CREATE OR REPLACE FUNCTION couleurJoueurRonde(p_idJoueur IN Joueurs.idJoueur%TYPE, p_idTournoi IN Tournois.idTournoi%TYPE, p_numRonde IN Parties.numRonde%TYPE) RETURN VARCHAR IS
+v_partie Parties%ROWTYPE;
+BEGIN
+    SELECT * INTO v_partie
+    FROM Parties
+    WHERE idTournoi = p_idTournoi AND numRonde = p_numRonde AND (idJoueurBlancs = p_idJoueur OR idJoueurNoirs = p_idJoueur);
 
+    IF p_idJoueur = v_partie.idJoueurBlancs THEN
+        RETURN 'B';
+    ELSE
+        RETURN 'N';
+    END IF;
+END;
 
+--18)
+CREATE OR REPLACE FUNCTION adversaireJoueurRonde(p_idJoueur IN Joueurs.idJoueur%TYPE, p_idTournoi IN Tournois.idTournoi%TYPE, p_numRonde IN Parties.numRonde%TYPE) RETURN Joueurs.idJoueur%TYPE IS
+v_partie Parties%ROWTYPE;
+BEGIN
+    SELECT * INTO v_partie
+    FROM Parties
+    WHERE idTournoi = p_idTournoi AND numRonde = p_numRonde AND (idJoueurBlancs = p_idJoueur OR idJoueurNoirs = p_idJoueur);
+
+    IF couleurJoueurRonde(p_idJoueur, p_idTournoi, p_numRonde) = 'B' THEN
+        RETURN v_partie.idJoueurNoirs;
+    ELSE
+        RETURN v_partie.idJOueurBlancs;
+    END IF;
+END;
+
+--19)
+CREATE OR REPLACE FUNCTION resultatJoueurRonde(p_idJoueur IN Joueurs.idJoueur%TYPE, p_idTournoi IN Tournois.idTournoi%TYPE, p_numRonde IN Parties.numRonde%TYPE) RETURN NUMBER IS
+v_partie Parties%ROWTYPE;
+BEGIN
+    SELECT * INTO v_partie
+    FROM Parties
+    WHERE idTournoi = p_idTournoi AND numRonde = p_numRonde AND (idJoueurBlancs = p_idJoueur OR idJoueurNoirs = p_idJoueur);
+
+    RETURN resultatEnPoint(couleurJoueurRonde(p_idJoueur, p_idTournoi, p_numRonde), v_partie.resultatPartie);
+END;
+
+--20)
+CREATE OR REPLACE PROCEDURE affichagePartiesJoueurTournoi(p_idJoueur IN Joueurs.idJoueur%TYPE, p_idTournoi IN Tournois.idTournoi%TYPE) IS
+v_nbRondesTournoi Tournois.nbRondesTournoi%TYPE;
+v_adversaire Joueurs%ROWTYPE;
+BEGIN
+    SELECT nbRondesTournoi INTO v_nbRondesTournoi
+    FROM Tournois
+    WHERE idTournoi = p_idTournoi;
+
+    FOR v_ronde IN 1..v_nbRondesTournoi LOOP
+        SELECT * INTO v_adversaire
+        FROM Joueurs
+        WHERE idJoueur = adversaireJoueurRonde (p_idJoueur, p_idTournoi, v_ronde);
+
+        DBMS_OUTPUT.PUT_LINE('R'||v_ronde||' '||couleurJoueurRonde(p_idJoueur, p_idTournoi, v_ronde)||' '||v_adversaire.nomJoueur||' '||v_adversaire.prenomJoueur||' '||categorieJoueur(v_adversaire.dateNaissanceJoueur, v_adversaire.sexeJoueur)||' '||v_adversaire.eloJoueur||' '||resultatJoueurRonde(p_idJoueur, p_idTournoi, v_ronde));
+    END LOOP;
+END;
 
