@@ -912,6 +912,9 @@ WHERE salaireEmploye IN (
 )
 
 --R100
+
+
+--R100
 SELECT nomBungalow
 FROM Bungalows b
 WHERE NOT EXISTS(
@@ -1444,3 +1447,63 @@ begin
 exception when no_data_found then
     dbms_output.put_line('La ligue ' || p_idLigue || ' n''existe pas ');
 end;
+
+--13)
+create or replace FUNCTION categorieJoueur(p_dateNaissance IN Joueurs.dateNaissanceJoueur%TYPE,p_sexe IN Joueurs.sexeJoueur%TYPE) RETURN VARCHAR is
+v_age varchar(4);
+begin
+    if p_dateNaissance < '01/01/1964' then
+        v_age := 'Vet';
+    elsif p_dateNaissance > '31/12/1998' then
+        v_age := 'Jun';
+    else
+        v_age := 'Sen';
+    end if;
+
+    if p_sexe = 'M' then
+        return v_age || 'M';
+    else
+        return v_age || 'F';
+    end if;
+end;
+
+--14)
+create or replace PROCEDURE affichageResultatsRonde(p_idTournoi IN Parties.idTournoi%TYPE, p_numRonde IN Parties.numRonde%TYPE) is
+    cursor curs_resultats is
+        select b.dateNaissanceJoueur as dateNaissanceJoueurBlanc, n.dateNaissanceJoueur as dateNaissanceJoueurNoir, b.sexeJoueur as sexeJoueurBlanc, n.sexeJoueur as sexeJoueurNoir, b.nomJoueur as nomBlanc, b.prenomJoueur as prenomBlanc, b.eloJoueur as eloBlanc, resultatPartie, n.nomJoueur as nomNoir, n.prenomJoueur as prenomNoir, n.eloJoueur as eloNoir
+        from Parties p
+        join Joueurs b on p.idJoueurBlancs = b.idJoueur
+        join Joueurs n on p.idJoueurNoirs = n.idJoueur
+        where idTournoi = p_idTournoi and numRonde = p_numRonde
+        order by numTable;
+begin
+    for v_partie in curs_resultats loop
+       dbms_output.put_line(v_partie.nomBlanc || ' ' || v_partie.prenomBlanc || ' ' || categorieJoueur(v_partie.dateNaissanceJoueurBlanc, v_partie.sexeJoueurBlanc) || ' ' || v_partie.eloBlanc || ' ' || v_partie.resultatPartie || ' ' || v_partie.nomNoir || ' ' || v_partie.prenomNoir || ' ' || categorieJoueur(v_partie.dateNaissanceJoueurNoir, v_partie.sexeJoueurNoir) || ' ' || v_partie.eloNoir);
+    end loop;
+end;
+
+--15)
+CREATE OR REPLACE PROCEDURE affichageInfosJoueur(p_idJoueur IN Joueurs.idJoueur%TYPE) IS
+v_joueur Joueurs%ROWTYPE;
+BEGIN
+    SELECT * INTO v_joueur
+    FROM Joueurs
+    WHERE idJoueur = p_idJoueur;
+
+    DMBS_OUTPUT.PUT_LINE('Identifiant joueur ' || v_joueur.idJoueur);
+    DMBS_OUTPUT.PUT_LINE('Nom joueur ' || v_joueur.nomJoueur);
+    DMBS_OUTPUT.PUT_LINE('Prénom joueur ' || v_joueur.prenomJoueur);
+    DMBS_OUTPUT.PUT_LINE('Elo joueur ' || v_joueur.eloJoueur);
+    DMBS_OUTPUT.PUT_LINE('Catégorie joueur ' || categorieJoueur(v_joueur.dateNaissanceJoueur, v_joueur.sexeJoueur));
+    DMBS_OUTPUT.PUT_LINE('Club joueur ' || v_joueur.clubJoueur);
+
+EXCEPTION NO_DATA_FOUND THEN
+    DMBS_OUTPUT.PUT_LINE('Le joueur ' || p_idJoueur || ' n''existe pas');
+END;
+
+
+
+
+
+
+
